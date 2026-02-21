@@ -1,22 +1,26 @@
-# Autonomous Self-Healing CI/CD Platform
+# 🤖 Autonomous Self-Healing CI/CD Platform
 
-**Enterprise-grade AIOps platform for autonomous infrastructure and code remediation.**
-
----
-
-## Overview
-
-When a pipeline fails (build error, test failure), the AI Agent:
-
-1. **Detects** the failure  
-2. **Analyzes** logs using Google Gemini  
-3. **Proposes** a fix (code or config)  
-4. **Implements** the fix via commit/PR  
-5. **Retries** the pipeline upon approval  
+> **🛡️ Enterprise-grade AIOps platform for autonomous infrastructure and code remediation.**
 
 ---
 
-## Architecture & Flow Diagram
+## 📋 Overview
+
+When a pipeline fails (build error, test failure), the AI Agent automatically:
+
+| Step | Action | Description |
+|------|--------|-------------|
+| 1️⃣ | **Detect** | Identifies the failure from CI logs |
+| 2️⃣ | **Analyze** | Uses Google Gemini to diagnose root cause |
+| 3️⃣ | **Propose** | Suggests code or config fixes with confidence scores |
+| 4️⃣ | **Implement** | Applies the fix and commits to a new branch |
+| 5️⃣ | **Retry** | Triggers a new pipeline run to verify the fix |
+
+💡 *Low confidence? The agent requests human review instead of auto-applying.*  
+
+---
+
+## 🏗️ Architecture & Flow Diagram
 
 ```mermaid
 graph LR
@@ -60,48 +64,64 @@ graph LR
 
 ---
 
-## Tech Stack
+## 🛠️ Tech Stack
 
-| Layer        | Technology                          |
-| ------------ | ----------------------------------- |
-| **AI Agent** | Python, LangChain, Google Gemini    |
-| **CI/CD**    | GitHub Actions, Jenkins, AWS, Azure, GitLab |
-| **Infrastructure** | Kubernetes (Kind), Terraform, Docker |
-| **Dashboard** | Next.js, TailwindCSS                |
-| **Observability** | OpenTelemetry, Prometheus          |
-
----
-
-## Project Structure
-
-```
-├── src/agent/        # Python AI agent (LangChain + Gemini)
-├── src/dashboard/    # Next.js observability UI
-├── src/target_app/   # Demo application for testing
-├── infra/            # Terraform, K8s manifests, Helm
-├── docs/             # Runbooks, ADRs, guides
-└── .github/workflows/ # CI pipeline
-```
+| Layer | Technology | Purpose |
+|-------|------------|---------|
+| 🧠 **AI Agent** | Python, LangChain, Google Gemini | Log analysis, root-cause inference, fix generation |
+| ⚙️ **CI/CD** | GitHub Actions, Jenkins, AWS, Azure, GitLab | Pipeline integration |
+| ☸️ **Infrastructure** | Kubernetes (Kind), Terraform, Docker | Target deployment |
+| 📊 **Dashboard** | Next.js, TailwindCSS | Observability UI |
+| 📈 **Observability** | OpenTelemetry, Prometheus | SLOs, metrics, tracing |
 
 ---
 
-## Quick Start
+## 🗣️ Languages
+
+| Language | Used In |
+|----------|---------|
+| **Python** | AI agent, LangChain workflows |
+| **TypeScript / JavaScript** | Next.js dashboard |
+| **HCL** | Terraform infrastructure |
+| **YAML** | Kubernetes manifests, GitHub Actions, Helm |
+
+---
+
+## 📁 Project Structure
+
+```
+├── src/agent/           🧠 Python AI agent (LangChain + Gemini)
+├── src/dashboard/       📊 Next.js observability UI
+├── src/target_app/      🎯 Demo application for testing
+├── infra/               ☸️ Terraform, K8s manifests, Helm
+├── docs/                📚 Runbooks, ADRs, guides
+└── .github/workflows/   ⚙️ CI pipeline definitions
+```
+
+---
+
+## 🚀 Quick Start
 
 ```bash
+# 1. Configure secrets
 cp .env.example .env   # Add GOOGLE_API_KEY, GITHUB_TOKEN
+
+# 2. Run the AI agent (dry-run)
 cd src/agent && pip install -r requirements.txt
 python main.py --provider local --dry-run
+
+# 3. Launch the dashboard
 cd src/dashboard && npm install && npm run dev
 ```
 
-See [docs/SETUP_RUNBOOK.md](docs/SETUP_RUNBOOK.md) and [INTEGRATIONS.md](INTEGRATIONS.md).
+📖 **Further reading:** [docs/SETUP_RUNBOOK.md](docs/SETUP_RUNBOOK.md) · [INTEGRATIONS.md](INTEGRATIONS.md)
 
 ---
 
-## Author
+## 👤 Author
 
 **Sergio Sediq**
 
-- GitHub: [@SergioSediq](https://github.com/SergioSediq)
-- LinkedIn: [Sergio Sediq](https://www.linkedin.com/in/sedyagho/)
-- Email: sediqsergio@gmail.com
+- 🔗 [GitHub](https://github.com/SergioSediq)
+- 💼 [LinkedIn](https://www.linkedin.com/in/sedyagho/)
+- ✉️ sediqsergio@gmail.com

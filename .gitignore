@@ -1,0 +1,29 @@
+# General
+.DS_Store
+*.log
+node_modules/
+__pycache__/
+*.pyc
+.env
+.venv
+venv/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+*-config
+*.kubeconfig
+
+# IDE
+.vscode/
+.idea/
+
+# Next.js
+.next/
+out/
+build/
+dist/
+
+# Agent
+logs/

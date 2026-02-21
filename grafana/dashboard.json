@@ -1,0 +1,25 @@
+{
+  "title": "Heal Agent Dashboard",
+  "panels": [
+    {
+      "title": "Heal Success Rate",
+      "type": "stat",
+      "targets": [{"expr": "heal_success_rate", "legendFormat": "Success %"}]
+    },
+    {
+      "title": "Heal Latency",
+      "type": "graph",
+      "targets": [{"expr": "histogram_quantile(0.95, heal_latency_seconds_bucket)", "legendFormat": "p95"}]
+    },
+    {
+      "title": "Fixes Applied",
+      "type": "stat",
+      "targets": [{"expr": "heal_fixes_total", "legendFormat": "Total fixes"}]
+    },
+    {
+      "title": "Token Usage",
+      "type": "graph",
+      "targets": [{"expr": "heal_tokens_total", "legendFormat": "Tokens"}]
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  target-app:
+    build: ./src/target_app
+    image: target-app:latest
+    environment:
+      FIX_APPLIED: "true"
+
+  dashboard:
+    build:
+      context: ./src/dashboard
+      dockerfile: Dockerfile
+    image: dashboard:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./src/dashboard/public:/app/public
+      - ./logs:/app/logs
+    depends_on:
+      - target-app
+
+  agent-health:
+    build:
+      context: ./src/agent
+      dockerfile: Dockerfile.health
+    image: agent-health:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+    profiles:
+      - monitoring
+
+volumes:
+  logs:

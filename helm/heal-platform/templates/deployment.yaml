@@ -1,0 +1,36 @@
+{{- if .Values.targetApp }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target-app
+  namespace: autopilot-target
+spec:
+  replicas: {{ .Values.targetApp.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      app: target-app
+  template:
+    metadata:
+      labels:
+        app: target-app
+    spec:
+      containers:
+        - name: target-app
+          image: "{{ .Values.targetApp.image.repository }}:{{ .Values.targetApp.image.tag }}"
+          env:
+            - name: FIX_APPLIED
+              value: "true"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: target-app
+  namespace: autopilot-target
+spec:
+  selector:
+    app: target-app
+  ports:
+    - port: 3000
+      targetPort: 3000
+  type: ClusterIP
+{{- end }}

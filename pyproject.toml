@@ -1,0 +1,11 @@
+[project]
+name = "self-healing-agent"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = []
+
+
+[tool.pytest.ini_options]
+testpaths = ["src/agent/tests"]
+pythonpath = ["src/agent"]
+addopts = "-v"

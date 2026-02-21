@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: heal-agent
+  namespace: autopilot-target
+  labels:
+    app: heal-agent
+spec:
+  schedule: "0 * * * *"  # hourly; override for on-demand
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: agent
+              image: heal-agent:latest
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: GOOGLE_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: agent-secrets
+                      key: google-api-key
+                - name: GITHUB_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: agent-secrets
+                      key: github-token

@@ -1,0 +1,13 @@
+{
+  "last_run_id": "c",
+  "status": "error",
+  "logs": "API rate limit",
+  "timestamp": 1771714789.9840717,
+  "provider": "Local Docker Environment",
+  "correlation_id": "heal-c-1771714789",
+  "analysis": {
+    "root_cause": null,
+    "suggested_fix": null,
+    "confidence_score": 0
+  }
+}

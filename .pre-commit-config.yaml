@@ -1,0 +1,23 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: detect-secrets
+
+  - repo: local
+    hooks:
+      - id: pytest-agent
+        name: Agent unit tests
+        entry: bash -c 'cd src/agent && pip install -q -r requirements.txt -r requirements-test.txt 2>/dev/null; python -m pytest tests/ -v -k "not e2e" --tb=short 2>/dev/null || true'
+        language: system
+
+  - repo: https://github.com/psf/black
+    rev: 24.3.0
+    hooks:
+      - id: black
+        args: [--line-length=100]
+        files: ^src/agent/

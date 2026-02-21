@@ -1,0 +1,20 @@
+targetApp:
+  replicaCount: 1
+  image:
+    repository: target-app
+    tag: latest
+
+dashboard:
+  replicaCount: 1
+  image:
+    repository: dashboard
+    tag: latest
+  service:
+    type: LoadBalancer
+
+agent:
+  cron:
+    schedule: "0 * * * *"
+  image:
+    repository: heal-agent
+    tag: latest

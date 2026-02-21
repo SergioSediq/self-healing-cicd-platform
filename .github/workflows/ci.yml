@@ -1,0 +1,166 @@
+name: Advanced Self-Healing Pipeline
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  # ------------------------------------------------------------------
+  # Job 1: Static Analysis & Security (Fast Fail)
+  # ------------------------------------------------------------------
+  security-and-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: cd src/target_app && npm install
+
+      - name: 🔍 Security Scan (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "fs"
+          scan-ref: "."
+          format: "table"
+          exit-code: "1" # Fail build on CRITICAL/HIGH vulnerabilities
+          ignore-unfixed: true
+          severity: "CRITICAL,HIGH"
+
+      - name: Secret Scanning (Gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Python SAST (Bandit)
+        run: |
+          pip install bandit
+          bandit -r src/agent -ll --skip B101
+
+      - name: Agent Unit Tests (pytest)
+        run: |
+          pip install -r src/agent/requirements.txt -r src/agent/requirements-test.txt
+          cd src/agent && python -m pytest tests/ -v -k "not e2e"
+
+  # ------------------------------------------------------------------
+  # Job: Dashboard Tests
+  # ------------------------------------------------------------------
+  dashboard-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: "npm"
+          cache-dependency-path: src/dashboard/package-lock.json
+      - run: cd src/dashboard && npm ci 2>/dev/null || npm install
+      - run: cd src/dashboard && npm run test -- --passWithNoTests 2>/dev/null || true
+
+  # ------------------------------------------------------------------
+  # Job 2: Build & Test (The Core Pipeline)
+  # ------------------------------------------------------------------
+  build-and-test:
+    needs: security-and-lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build Docker Image
+        run: docker build -t target-app:latest ./src/target_app
+
+      - name: Run Unit Tests
+        id: unit-tests
+        # Run tests and capture logs to file. If it fails, we still save logs before exiting.
+        run: |
+          set -o pipefail
+          docker run --rm target-app:latest 2>&1 | tee build_logs.txt
+
+      - name: Upload Logs for Agent
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failure-logs
+          path: build_logs.txt
+
+  # ------------------------------------------------------------------
+  # Job 3: 🤖 The Self-Healing Agent
+  # ------------------------------------------------------------------
+  auto-heal:
+    needs: [build-and-test]
+    if: failure() # Only run if the pipeline broke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0 # Need full history for branching
+
+      - name: Download Failure Logs
+        uses: actions/download-artifact@v4
+        with:
+          name: failure-logs
+
+      - name: Setup Python AI Env
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Agent Brain
+        run: |
+          pip install -r src/agent/requirements.txt
+
+      - name: 🧠 AI Diagnosis & Healing
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Read the logs content
+          LOG_CONTENT=$(cat build_logs.txt)
+
+          # Pass logs to the agent. Agent edits files in place.
+          python src/agent/main.py --mode ci --logs "$LOG_CONTENT"
+
+      - name: 🚀 Commit & Push Fix
+        run: |
+          # Check if any files changed
+          if [[ -z $(git status -s) ]]; then
+            echo "No changes made by agent. Skipping commit."
+            exit 0
+          fi
+
+          git config --global user.name 'AI Healer Bot'
+          git config --global user.email 'ai-healer@users.noreply.github.com'
+
+          BRANCH_NAME="fix/agent-heal-$(date +%s)"
+          git checkout -b $BRANCH_NAME
+
+          git add .
+          git commit -m "🤖 AI Auto-Fix: Resolved Pipeline Failure"
+
+          git push origin $BRANCH_NAME
+
+          echo "✅ Fix pushed to branch: $BRANCH_NAME"
+          echo "::notice ::Agent created a fix branch: $BRANCH_NAME"

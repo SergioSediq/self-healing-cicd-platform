@@ -1,0 +1,72 @@
+openapi: 3.0.3
+info:
+  title: Self-Healing CI/CD Dashboard API
+  version: 0.1.0
+
+paths:
+  /api/status:
+    get:
+      summary: Get current heal status
+      parameters:
+        - name: provider
+          in: query
+          schema: { type: string }
+        - name: runId
+          in: query
+          schema: { type: string }
+        - name: status
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Status payload
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  last_run_id: { type: string }
+                  status: { type: string }
+                  logs: { type: string }
+                  analysis: { type: object }
+
+  /api/health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: OK
+
+  /api/history:
+    get:
+      summary: Audit history with pagination
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+        - name: offset
+          in: query
+          schema: { type: integer, default: 0 }
+        - name: status
+          in: query
+          schema: { type: string }
+        - name: retention_days
+          in: query
+          schema: { type: integer }
+      responses:
+        "200":
+          description: History entries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  history: { type: array }
+                  total: { type: integer }
+
+  /api/metrics:
+    get:
+      summary: Prometheus metrics
+      responses:
+        "200":
+          description: text/plain metrics
